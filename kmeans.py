@@ -16,7 +16,7 @@ class KMeans:
         rng = np.random.default_rng()
         #NOTE: Check if this initialization is correct
         self.centroids = rng.uniform(low=-1.0, high=1.0, size=(self.k, self.features.shape[1]))
-
+        self.tol = 1e-4
     
     def compute_distance_matrix(self, pts1, pts2):
         '''
@@ -46,27 +46,31 @@ class KMeans:
             #Check for convergence
             if i_iter >= 1:
                 deviation = LA.norm(centroids_old - self.centroids)
-                if deviation <= 1e-4:
+                if deviation <= self.tol:
                     break 
             centroids_old = np.copy(self.centroids)
             
         wcss = self.compute_wcss(distance_matrix, memberships)
         # print(f"k:{self.k}, silhouette score:{silhuette_score(self.features, memberships)}")
-        # silscore = silhouette_score(self.features, memberships)
-        return wcss, None 
+        silscore = silhouette_score(self.features, memberships)
+        print(f"{self.k = }, Silhouette Score={silscore}")
+        return wcss, silscore 
 
 
 def main(data):
     k_ls = []
     wcss_ls = []
     silscore_ls = []
-    for k in [2,3,5,7]:
+    for k in [2,3,5,7,9]:
         KMeans_obj = KMeans(data, k, max_iters=100)
         wcss, silscore = KMeans_obj.run()
         k_ls.append(k)
         wcss_ls.append(wcss)
         silscore_ls.append(silscore)
 
+    plt.title(f"Elbow Plot")
+    plt.xlabel(f"k")
+    plt.ylabel(f"WCSS Value")
     plt.plot(k_ls, wcss_ls)
     plt.show()
 
